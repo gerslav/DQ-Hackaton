@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Главная</title>
+	<meta charset="utf-8" />
+	<script src="https://unpkg.com/vue"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+<body>
+<style>
+	h1,h2,h3,h4,h5,h6
+	{
+		margin: 30px 0;
+		
+	}
+
+</style>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class = "container">
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+	    <span class="navbar-toggler-icon"></span>
+	  </button>
+	  <div class="collapse navbar-collapse" id="navbarNav">
+	    <ul class="navbar-nav">
+	      <li class="nav-item ">
+	        <a class="nav-link" href="/"> Главная <span class="sr-only">(current)</span></a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link" href="/new_record/"> форма </a>
+	      </li>	  	      
+	      <li class="nav-item">
+	        <a class="nav-link" href="/test/"> тест </a>
+	      </li>	      
+	    </ul>
+	  </div>
+  </div>
+</nav>
+
+<div class = "container">
+	<div class = "row">
+		<h1> Пользователи </h1>
+		<% @users.each do |user| %>
+			<div class = "container card" data-index = "<%= user["id"] %>"> 
+				<a class = "get_ivents" href = "#"> 
+					<%= user["name"] %>
+				</a>
+				<p> Общих интересов: <%= user["count"] %></p>
+				<ul class = "ivents_list list-group"></ul>
+				<form class = "add_ivent" method="post" action = "/add_ivent/">
+					<input type = "text" name = "name">
+					<input type = "hidden" name = "user_id" value = "<%= user['id'] %>">
+					<button class = "" type = "submit"> Добавить </button>
+				</form>
+			</div>
+		<% end %>
+	</div>
+</div>
+<script>
+	$(document).ready(function() {
+  // CSRF code
+  	$('.get_ivents').click(function(e){
+  		e.preventDefault();
+  		let ul = $(this).parent().children('ul');
+  		$.ajax({
+	        url: '/ivents/' + $(this).parent().data('index'),
+	        method: 'GET',
+	        success: function(data, textStatus, xhr) {
+	        	
+                data = JSON.parse(xhr.responseText);
+                ul.children().remove();
+                for (let i = 0; i < data.length; i++) {
+                	// console.log(data[i]["name"]);
+                    ul.append("<li class = 'list-group-item'>" 
+                    	+ data[i]["name"] 
+                    	+ "<a href = '#' data-index = '"
+                    	+ data[i]["id"] 
+                    	+ "' class = 'remove_ivent'>x</a>"
+                    + "</li>")
+                }
+            }
+	    });
+  	});
+
+	$(".ivents_list").on("click", "a.remove_ivent", function(e){
+  		e.preventDefault();
+  		console.log("remove");
+  		$.ajax({
+	        url: '/remove_ivent/' + $(this).data('index'),
+	        method: 'GET',
+	        success: function(d) { console.log(d); },
+        	error: function(d) { console.log(d); },
+	    });
+  		$(this).parent().remove();
+  	});
+
+  	$('.add_ivent').submit(function(e){
+  		e.preventDefault();
+  		let input = $(this).children('input[name = "name"]');
+  		if (input.val() === '') return; 
+  		$.ajax({
+	        type: "POST",
+	        url: $(this).attr('action'),	
+	        data: $(this).serialize(), // serializes the form's elements.
+	        success: function(d) { console.log(d); },
+	        error: function(d) { console.log(d); },
+	    });
+
+	    $(this).parent().children('ul').append(
+	    			"<li class = 'list-group-item'>" 
+                    	+ input.val() 
+                    	+ "<a href = '#' data-index = '"
+                    	+ "-1"
+                    	+ "' class = 'remove_ivent'>x</a>"
+                    + "</li>")
+	    input.val('');
+  	});
+  });
+</script>
+</body>
+</html>
+

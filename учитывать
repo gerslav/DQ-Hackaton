@@ -1,0 +1,1 @@
+ALTER TABLE your_database_name.your_table CONVERT TO CHARACTER SET utf8
