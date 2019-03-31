@@ -1,5 +1,5 @@
 require "sinatra"
-require "mysql2"
+require "pg"
 require 'json'
 require "./components/db"
 require "./models/records"
